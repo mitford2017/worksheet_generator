@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worksheet Generator | Lexington Science Academy</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .level-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .level-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .level-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .level-card:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .level-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .level-card h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .level-card p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 12px;
+        }
+
+        .preview-content {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            min-height: 120px;
+        }
+
+        .sample-problem {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 24px;
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .worksheet-type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            border-color: #667eea;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Worksheet Generator</h1>
+            <p>Lexington Science Academy | Mathematics Department</p>
+        </header>
+
+        <div class="card">
+            <h2 class="card-title">Worksheet Type</h2>
+            <div class="worksheet-type-tabs">
+                <button class="tab-btn active" data-type="arithmetic" onclick="switchType('arithmetic')">Basic Arithmetic</button>
+                <button class="tab-btn" data-type="powers" onclick="switchType('powers')">Powers of Ten</button>
+            </div>
+
+            <!-- Arithmetic Options -->
+            <div id="arithmetic-options">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="operation">Operation</label>
+                        <select id="operation">
+                            <option value="addition">Addition (+)</option>
+                            <option value="subtraction">Subtraction (-)</option>
+                            <option value="multiplication">Multiplication (x)</option>
+                            <option value="division">Division (÷)</option>
+                            <option value="mixed">Mixed Operations</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="num-problems">Number of Problems</label>
+                        <input type="number" id="num-problems" value="30" min="5" max="100">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Difficulty Level</label>
+                    <div class="level-cards">
+                        <div class="level-card selected" data-level="basic" onclick="selectLevel(this, 'arithmetic')">
+                            <h4>Basic</h4>
+                            <p>Numbers 1-20</p>
+                        </div>
+                        <div class="level-card" data-level="intermediate" onclick="selectLevel(this, 'arithmetic')">
+                            <h4>Intermediate</h4>
+                            <p>Numbers 1-50</p>
+                        </div>
+                        <div class="level-card" data-level="advanced" onclick="selectLevel(this, 'arithmetic')">
+                            <h4>Advanced</h4>
+                            <p>Numbers 1-99</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Powers of Ten Options -->
+            <div id="powers-options" class="hidden">
+                <div class="form-group">
+                    <label for="powers-num-problems">Number of Problems</label>
+                    <input type="number" id="powers-num-problems" value="16" min="5" max="50">
+                </div>
+
+                <div class="form-group">
+                    <label>Difficulty Level</label>
+                    <div class="level-cards">
+                        <div class="level-card" data-level="basic" onclick="selectLevel(this, 'powers')">
+                            <h4>Basic</h4>
+                            <p>Simple powers: 5 × 10³</p>
+                        </div>
+                        <div class="level-card selected" data-level="intermediate" onclick="selectLevel(this, 'powers')">
+                            <h4>Intermediate</h4>
+                            <p>Two terms: (8×10⁴) × (2×10⁻¹)</p>
+                        </div>
+                        <div class="level-card" data-level="advanced" onclick="selectLevel(this, 'powers')">
+                            <h4>Advanced</h4>
+                            <p>Complex fractions & multi-term</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="include-answers" checked>
+                <label for="include-answers">Include Answer Key</label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Preview</h2>
+            <div class="preview-section">
+                <div class="preview-title">Sample Problems:</div>
+                <div class="preview-content" id="preview-content">
+                    <!-- Preview will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" id="generate-btn" onclick="generateWorksheet()">
+            <span id="btn-text">Generate & Download PDF</span>
+            <span id="btn-spinner" class="spinner hidden"></span>
+        </button>
+
+        <footer>
+            <p>&copy; 2025 Lexington Science Academy | Worksheet Generator</p>
+        </footer>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        // Superscript map for powers of ten
+        const SUPERSCRIPT = {
+            '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+            '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+            '-': '⁻', '+': '⁺'
+        };
+
+        function toSuperscript(num) {
+            return String(num).split('').map(c => SUPERSCRIPT[c] || c).join('');
+        }
+
+        let currentType = 'arithmetic';
+        let arithmeticLevel = 'basic';
+        let powersLevel = 'intermediate';
+
+        function switchType(type) {
+            currentType = type;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            document.getElementById('arithmetic-options').classList.toggle('hidden', type !== 'arithmetic');
+            document.getElementById('powers-options').classList.toggle('hidden', type !== 'powers');
+            updatePreview();
+        }
+
+        function selectLevel(el, type) {
+            const container = el.parentElement;
+            container.querySelectorAll('.level-card').forEach(card => card.classList.remove('selected'));
+            el.classList.add('selected');
+            if (type === 'arithmetic') {
+                arithmeticLevel = el.dataset.level;
+            } else {
+                powersLevel = el.dataset.level;
+            }
+            updatePreview();
+        }
+
+        function getLevelRange(level) {
+            switch(level) {
+                case 'basic': return { min: 1, max: 20 };
+                case 'intermediate': return { min: 1, max: 50 };
+                case 'advanced': return { min: 1, max: 99 };
+                default: return { min: 1, max: 20 };
+            }
+        }
+
+        function generateArithmeticProblem(operation, level) {
+            const range = getLevelRange(level);
+            let a, b, answer, op;
+
+            switch(operation) {
+                case 'addition':
+                    a = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    b = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    answer = a + b;
+                    op = '+';
+                    break;
+                case 'subtraction':
+                    a = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    b = Math.floor(Math.random() * a) + 1;
+                    answer = a - b;
+                    op = '-';
+                    break;
+                case 'multiplication':
+                    a = Math.floor(Math.random() * 12) + 1;
+                    b = Math.floor(Math.random() * 12) + 1;
+                    answer = a * b;
+                    op = '×';
+                    break;
+                case 'division':
+                    b = Math.floor(Math.random() * 11) + 2;
+                    answer = Math.floor(Math.random() * 12) + 1;
+                    a = b * answer;
+                    op = '÷';
+                    break;
+                case 'mixed':
+                    const ops = ['addition', 'subtraction', 'multiplication', 'division'];
+                    return generateArithmeticProblem(ops[Math.floor(Math.random() * ops.length)], level);
+            }
+
+            return { top: a, bottom: b, answer, operation: op };
+        }
+
+        function generatePowersProblem(level) {
+            if (level === 'basic') {
+                const type = Math.random() > 0.5 ? 'single' : 'multiply';
+                if (type === 'single') {
+                    const coef = Math.floor(Math.random() * 9) + 1;
+                    const exp = Math.floor(Math.random() * 10) - 3;
+                    return {
+                        expression: `${coef} × 10${toSuperscript(exp)}`,
+                        answer: `${coef} × 10${toSuperscript(exp)}`,
+                        isFraction: false
+                    };
+                } else {
+                    const a = Math.floor(Math.random() * 9) + 1;
+                    const b = Math.floor(Math.random() * 9) + 1;
+                    const m = Math.floor(Math.random() * 4) + 1;
+                    const n = Math.floor(Math.random() * 4) + 1;
+                    let resultCoef = a * b;
+                    let resultExp = m + n;
+                    if (resultCoef >= 10) {
+                        resultCoef /= 10;
+                        resultExp += 1;
+                    }
+                    return {
+                        expression: `(${a} × 10${toSuperscript(m)}) × (${b} × 10${toSuperscript(n)})`,
+                        answer: `${resultCoef % 1 === 0 ? resultCoef : resultCoef.toFixed(1)} × 10${toSuperscript(resultExp)}`,
+                        isFraction: false
+                    };
+                }
+            } else if (level === 'intermediate') {
+                const isDivision = Math.random() > 0.5;
+                const a = Math.floor(Math.random() * 8) + 2;
+                const b = Math.floor(Math.random() * 8) + 2;
+                const m = Math.floor(Math.random() * 9) - 3;
+                const n = Math.floor(Math.random() * 9) - 3;
+
+                let resultCoef, resultExp;
+                if (isDivision) {
+                    resultCoef = a / b;
+                    resultExp = m - n;
+                } else {
+                    resultCoef = a * b;
+                    resultExp = m + n;
+                }
+
+                while (resultCoef >= 10) { resultCoef /= 10; resultExp++; }
+                while (resultCoef > 0 && resultCoef < 1) { resultCoef *= 10; resultExp--; }
+
+                return {
+                    expression: `(${a} × 10${toSuperscript(m)}) ${isDivision ? '÷' : '×'} (${b} × 10${toSuperscript(n)})`,
+                    answer: `${resultCoef % 1 === 0 ? resultCoef : resultCoef.toFixed(2).replace(/\.?0+$/, '')} × 10${toSuperscript(resultExp)}`,
+                    isFraction: false
+                };
+            } else { // advanced
+                const a = Math.floor(Math.random() * 8) + 2;
+                const b = Math.floor(Math.random() * 8) + 2;
+                const m = Math.floor(Math.random() * 5) + 2;
+                const n = Math.floor(Math.random() * 6) - 2;
+                const product = a * b;
+                const divisors = [];
+                for (let d = 2; d <= 12; d++) if (product % d === 0) divisors.push(d);
+                const c = divisors.length > 0 ? divisors[Math.floor(Math.random() * divisors.length)] : 2;
+                const p = Math.floor(Math.random() * 4) + 1;
+
+                let resultCoef = product / c;
+                let resultExp = m + n - p;
+
+                while (resultCoef >= 10) { resultCoef /= 10; resultExp++; }
+                while (resultCoef > 0 && resultCoef < 1) { resultCoef *= 10; resultExp--; }
+
+                return {
+                    expression: `(${a} × 10${toSuperscript(m)} × ${b} × 10${toSuperscript(n)}) ÷ (${c} × 10${toSuperscript(p)})`,
+                    answer: `${resultCoef % 1 === 0 ? resultCoef : resultCoef.toFixed(2).replace(/\.?0+$/, '')} × 10${toSuperscript(resultExp)}`,
+                    isFraction: true,
+                    numerator: `${a} × 10${toSuperscript(m)} × ${b} × 10${toSuperscript(n)}`,
+                    denominator: `${c} × 10${toSuperscript(p)}`
+                };
+            }
+        }
+
+        function updatePreview() {
+            const previewEl = document.getElementById('preview-content');
+            let html = '';
+
+            if (currentType === 'arithmetic') {
+                const operation = document.getElementById('operation').value;
+                for (let i = 0; i < 3; i++) {
+                    const prob = generateArithmeticProblem(operation, arithmeticLevel);
+                    html += `<div class="sample-problem">
+                        &nbsp;&nbsp;${prob.top}<br>
+                        ${prob.operation} ${prob.bottom}<br>
+                        ────<br><br>
+                    </div>`;
+                }
+            } else {
+                for (let i = 0; i < 3; i++) {
+                    const prob = generatePowersProblem(powersLevel);
+                    if (prob.isFraction) {
+                        html += `<div class="sample-problem">
+                            ${prob.numerator}<br>
+                            ─────────────────<br>
+                            ${prob.denominator}<br><br>
+                        </div>`;
+                    } else {
+                        html += `<div class="sample-problem">${prob.expression}<br><br></div>`;
+                    }
+                }
+            }
+
+            previewEl.innerHTML = html;
+        }
+
+        function generateWorksheet() {
+            const btn = document.getElementById('generate-btn');
+            const btnText = document.getElementById('btn-text');
+            const spinner = document.getElementById('btn-spinner');
+
+            btn.disabled = true;
+            btnText.textContent = 'Generating...';
+            spinner.classList.remove('hidden');
+
+            setTimeout(() => {
+                try {
+                    if (currentType === 'arithmetic') {
+                        generateArithmeticPDF();
+                    } else {
+                        generatePowersPDF();
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btnText.textContent = 'Generate & Download PDF';
+                    spinner.classList.add('hidden');
+                }
+            }, 100);
+        }
+
+        function generateArithmeticPDF() {
+            const doc = new jsPDF();
+            const operation = document.getElementById('operation').value;
+            const numProblems = parseInt(document.getElementById('num-problems').value);
+            const includeAnswers = document.getElementById('include-answers').checked;
+
+            const problems = [];
+            for (let i = 0; i < numProblems; i++) {
+                problems.push(generateArithmeticProblem(operation, arithmeticLevel));
+            }
+
+            const opNames = {
+                'addition': 'Addition',
+                'subtraction': 'Subtraction',
+                'multiplication': 'Multiplication',
+                'division': 'Division',
+                'mixed': 'Mixed Operations'
+            };
+
+            const title = `${opNames[operation]} Practice`;
+            const problemsPerRow = 5;
+            const rowsPerPage = 6;
+            const problemsPerPage = problemsPerRow * rowsPerPage;
+            const totalPages = Math.ceil(numProblems / problemsPerPage) * (includeAnswers ? 2 : 1);
+
+            let currentPage = 1;
+            let problemIdx = 0;
+
+            // Generate problem pages
+            while (problemIdx < numProblems) {
+                if (problemIdx > 0) doc.addPage();
+
+                drawHeader(doc, title, currentPage, totalPages);
+
+                const startX = 15;
+                const startY = 55;
+                const cellWidth = 36;
+                const cellHeight = 35;
+
+                for (let row = 0; row < rowsPerPage && problemIdx < numProblems; row++) {
+                    for (let col = 0; col < problemsPerRow && problemIdx < numProblems; col++) {
+                        const x = startX + col * cellWidth;
+                        const y = startY + row * cellHeight;
+                        const prob = problems[problemIdx];
+
+                        // Problem number
+                        doc.setFontSize(9);
+                        doc.setTextColor(26, 54, 93);
+                        doc.text(`${problemIdx + 1}.`, x, y);
+
+                        // Draw vertical problem
+                        doc.setFontSize(12);
+                        doc.setTextColor(0);
+                        doc.setFont('courier', 'bold');
+
+                        const topStr = String(prob.top);
+                        const bottomStr = String(prob.bottom);
+                        const maxLen = Math.max(topStr.length, bottomStr.length);
+
+                        doc.text(topStr.padStart(maxLen + 2), x + 5, y + 8);
+                        doc.text(prob.operation + ' ' + bottomStr.padStart(maxLen), x + 5, y + 14);
+                        doc.line(x + 5, y + 16, x + 5 + (maxLen + 2) * 3, y + 16);
+
+                        doc.setFont('helvetica', 'normal');
+                        problemIdx++;
+                    }
+                }
+
+                drawFooter(doc, currentPage, totalPages);
+                currentPage++;
+            }
+
+            // Generate answer key
+            if (includeAnswers) {
+                problemIdx = 0;
+                while (problemIdx < numProblems) {
+                    doc.addPage();
+                    drawHeader(doc, `${title} - ANSWER KEY`, currentPage, totalPages);
+
+                    const startX = 15;
+                    const startY = 55;
+                    const cellWidth = 36;
+                    const cellHeight = 35;
+
+                    for (let row = 0; row < rowsPerPage && problemIdx < numProblems; row++) {
+                        for (let col = 0; col < problemsPerRow && problemIdx < numProblems; col++) {
+                            const x = startX + col * cellWidth;
+                            const y = startY + row * cellHeight;
+                            const prob = problems[problemIdx];
+
+                            doc.setFontSize(9);
+                            doc.setTextColor(26, 54, 93);
+                            doc.text(`${problemIdx + 1}.`, x, y);
+
+                            doc.setFontSize(12);
+                            doc.setTextColor(0);
+                            doc.setFont('courier', 'bold');
+
+                            const topStr = String(prob.top);
+                            const bottomStr = String(prob.bottom);
+                            const answerStr = String(prob.answer);
+                            const maxLen = Math.max(topStr.length, bottomStr.length, answerStr.length);
+
+                            doc.text(topStr.padStart(maxLen + 2), x + 5, y + 8);
+                            doc.text(prob.operation + ' ' + bottomStr.padStart(maxLen), x + 5, y + 14);
+                            doc.line(x + 5, y + 16, x + 5 + (maxLen + 2) * 3, y + 16);
+
+                            doc.setTextColor(197, 48, 48);
+                            doc.text(answerStr.padStart(maxLen + 2), x + 5, y + 22);
+
+                            doc.setFont('helvetica', 'normal');
+                            doc.setTextColor(0);
+                            problemIdx++;
+                        }
+                    }
+
+                    drawFooter(doc, currentPage, totalPages);
+                    currentPage++;
+                }
+            }
+
+            doc.save(`${operation}_practice.pdf`);
+        }
+
+        function generatePowersPDF() {
+            const doc = new jsPDF();
+            const numProblems = parseInt(document.getElementById('powers-num-problems').value);
+            const includeAnswers = document.getElementById('include-answers').checked;
+
+            const problems = [];
+            for (let i = 0; i < numProblems; i++) {
+                problems.push(generatePowersProblem(powersLevel));
+            }
+
+            const levelTitles = {
+                'basic': 'Powers of Ten - Basic',
+                'intermediate': 'Scientific Notation Practice',
+                'advanced': 'Scientific Notation - Advanced'
+            };
+
+            const title = levelTitles[powersLevel];
+            const problemsPerRow = 2;
+            const rowsPerPage = 5;
+            const problemsPerPage = problemsPerRow * rowsPerPage;
+            const totalPages = Math.ceil(numProblems / problemsPerPage) * (includeAnswers ? 2 : 1);
+
+            let currentPage = 1;
+            let problemIdx = 0;
+
+            while (problemIdx < numProblems) {
+                if (problemIdx > 0) doc.addPage();
+
+                drawHeader(doc, title, currentPage, totalPages);
+
+                const startX = 15;
+                const startY = 55;
+                const cellWidth = 90;
+                const cellHeight = 40;
+
+                for (let row = 0; row < rowsPerPage && problemIdx < numProblems; row++) {
+                    for (let col = 0; col < problemsPerRow && problemIdx < numProblems; col++) {
+                        const x = startX + col * cellWidth;
+                        const y = startY + row * cellHeight;
+                        const prob = problems[problemIdx];
+
+                        doc.setFontSize(10);
+                        doc.setTextColor(26, 54, 93);
+                        doc.text(`${problemIdx + 1}.`, x, y);
+
+                        doc.setFontSize(11);
+                        doc.setTextColor(0);
+
+                        if (prob.isFraction) {
+                            doc.text(prob.numerator, x + 8, y + 6);
+                            doc.line(x + 8, y + 9, x + 75, y + 9);
+                            doc.text(prob.denominator, x + 8, y + 15);
+                        } else {
+                            doc.text(prob.expression, x + 8, y + 8);
+                        }
+
+                        // Answer line
+                        doc.setDrawColor(203, 213, 224);
+                        doc.line(x + 8, y + 28, x + 75, y + 28);
+                        doc.setFontSize(8);
+                        doc.setTextColor(113, 128, 150);
+                        doc.text('Answer:', x + 8, y + 33);
+
+                        problemIdx++;
+                    }
+                }
+
+                drawFooter(doc, currentPage, totalPages);
+                currentPage++;
+            }
+
+            if (includeAnswers) {
+                problemIdx = 0;
+                while (problemIdx < numProblems) {
+                    doc.addPage();
+                    drawHeader(doc, `${title} - ANSWER KEY`, currentPage, totalPages);
+
+                    const startX = 15;
+                    const startY = 55;
+                    const cellWidth = 90;
+                    const cellHeight = 40;
+
+                    for (let row = 0; row < rowsPerPage && problemIdx < numProblems; row++) {
+                        for (let col = 0; col < problemsPerRow && problemIdx < numProblems; col++) {
+                            const x = startX + col * cellWidth;
+                            const y = startY + row * cellHeight;
+                            const prob = problems[problemIdx];
+
+                            doc.setFontSize(10);
+                            doc.setTextColor(26, 54, 93);
+                            doc.text(`${problemIdx + 1}.`, x, y);
+
+                            doc.setFontSize(11);
+                            doc.setTextColor(0);
+
+                            if (prob.isFraction) {
+                                doc.text(prob.numerator, x + 8, y + 6);
+                                doc.line(x + 8, y + 9, x + 75, y + 9);
+                                doc.text(prob.denominator, x + 8, y + 15);
+                            } else {
+                                doc.text(prob.expression, x + 8, y + 8);
+                            }
+
+                            doc.setTextColor(197, 48, 48);
+                            doc.setFontSize(10);
+                            doc.text(`= ${prob.answer}`, x + 8, y + 28);
+                            doc.setTextColor(0);
+
+                            problemIdx++;
+                        }
+                    }
+
+                    drawFooter(doc, currentPage, totalPages);
+                    currentPage++;
+                }
+            }
+
+            doc.save(`powers_of_ten_${powersLevel}.pdf`);
+        }
+
+        function drawHeader(doc, title, pageNum, totalPages) {
+            // Top line
+            doc.setDrawColor(26, 54, 93);
+            doc.setLineWidth(0.5);
+            doc.line(15, 12, 195, 12);
+
+            // School name
+            doc.setFontSize(10);
+            doc.setTextColor(26, 54, 93);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Lexington Science Academy', 15, 18);
+
+            // Title
+            doc.setFontSize(14);
+            doc.text(title, 105, 18, { align: 'center' });
+
+            // Date
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            doc.text(date, 195, 18, { align: 'right' });
+
+            // Subtitle
+            doc.setFontSize(9);
+            doc.setTextColor(74, 85, 104);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Complete all problems. Show your work!', 105, 25, { align: 'center' });
+
+            // Header bottom line
+            doc.setDrawColor(203, 213, 224);
+            doc.setLineWidth(0.3);
+            doc.line(15, 28, 195, 28);
+
+            // Name and date fields
+            doc.setTextColor(45, 55, 72);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.text('Name: _______________________________', 15, 35);
+            doc.text('Date: ________________    Score: ______ / ______', 110, 35);
+
+            // Divider
+            doc.setDrawColor(226, 232, 240);
+            doc.line(15, 40, 195, 40);
+        }
+
+        function drawFooter(doc, pageNum, totalPages) {
+            const y = 285;
+
+            // Footer line
+            doc.setDrawColor(203, 213, 224);
+            doc.setLineWidth(0.3);
+            doc.line(15, y - 5, 195, y - 5);
+
+            // Copyright
+            doc.setFontSize(7);
+            doc.setTextColor(113, 128, 150);
+            doc.text(`© ${new Date().getFullYear()} Lexington Science Academy | Mathematics Department`, 15, y);
+
+            // Page number
+            doc.setFontSize(9);
+            doc.setTextColor(26, 54, 93);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Page ${pageNum} of ${totalPages}`, 105, y, { align: 'center' });
+
+            // Worksheet ID
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(113, 128, 150);
+            doc.text(`Worksheet #${Math.floor(Math.random() * 9000) + 1000}`, 195, y, { align: 'right' });
+
+            // Bottom line
+            doc.setDrawColor(26, 54, 93);
+            doc.setLineWidth(0.5);
+            doc.line(15, y + 3, 195, y + 3);
+        }
+
+        // Event listeners
+        document.getElementById('operation').addEventListener('change', updatePreview);
+        document.getElementById('num-problems').addEventListener('change', updatePreview);
+        document.getElementById('powers-num-problems').addEventListener('change', updatePreview);
+
+        // Initial preview
+        updatePreview();
+    </script>
+</body>
+</html>
